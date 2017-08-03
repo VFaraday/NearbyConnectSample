@@ -15,14 +15,12 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
-import com.google.android.gms.nearby.connection.Connections;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.DiscoveryOptions;
@@ -39,7 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class ConnectionActivity extends AppCompatActivity implements
+public abstract class P2PStarConnectionActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener{
 
@@ -86,7 +84,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
     private boolean mIsDiscovering = false;
 
     /** True if we are advertising*/
-    private boolean mIsAdertising = false;
+    private boolean mIsAdvertising = false;
 
     /** Callbacks for connections to other devices */
     private final ConnectionLifecycleCallback mConnectionLifecycleCallback =
@@ -98,7 +96,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                             endpointId, connectionInfo.getEndpointName()));
                     Endpoint endpoint = new Endpoint(endpointId, connectionInfo.getEndpointName());
                     mPendingConnections.put(endpointId, endpoint);
-                    ConnectionActivity.this.onConnectionInitiated(endpoint, connectionInfo);
+                    P2PStarConnectionActivity.this.onConnectionInitiated(endpoint, connectionInfo);
                 }
 
                 @Override
@@ -109,12 +107,12 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                     mIsConnecting = false;
 
                     if (!result.getStatus().isSuccess()) {
-                        logW(String.format("Connection failed. Recieved status %s.",
-                                ConnectionActivity.toString(result.getStatus())));
+                        logW(String.format("Connection failed. Received status %s.",
+                                P2PStarConnectionActivity.toString(result.getStatus())));
                         onConnectionFailed(mPendingConnections.remove(endpointId));
                         return;
                     }
-                    connectedToEndpoint(mEstablishConnections.get(endpointId));
+                    connectedToEndpoint(mPendingConnections.remove(endpointId));
                 }
 
                 @Override
@@ -127,6 +125,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                 }
             };
 
+    /** Callbacks for payloads sent from another device to us*/
     private final PayloadCallback mPayloadCallback =
             new PayloadCallback() {
                 @Override
@@ -150,6 +149,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(Nearby.CONNECTIONS_API)
+                    .enableAutoManage(this, this)
                     .build();
         }
     }
@@ -159,13 +159,12 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
         mPendingConnections.clear();
         mEstablishConnections.clear();
         mIsConnecting = false;
-        mIsAdertising = false;
+        mIsAdvertising = false;
         mIsDiscovering = false;
     }
 
     @Override
     protected void onStart() {
-        super.onStart();
         if (hasPermissions(this, REQUIRED_PERMISSIONS)) {
             createGoogleClientApi();
         } else {
@@ -173,6 +172,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                 requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSION);
             }
         }
+        super.onStart();
     }
 
     /** connected to Nearby Connections */
@@ -193,7 +193,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         logW(String.format("onConnectionFailed(%s)",
-                ConnectionActivity.toString(new Status(connectionResult.getErrorCode()))));
+                P2PStarConnectionActivity.toString(new Status(connectionResult.getErrorCode()))));
     }
 
     @CallSuper
@@ -214,7 +214,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
     }
 
     protected void startAdvertising() {
-        mIsAdertising = true;
+        mIsAdvertising = true;
         Nearby.Connections.startAdvertising(
                 mGoogleApiClient,
                 getName(),
@@ -222,61 +222,74 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                 mConnectionLifecycleCallback,
                 new AdvertisingOptions(STAR_STRATEGY))
                 .setResultCallback(
-                        new ResultCallback<Connections.StartAdvertisingResult>() {
-                            @Override
-                            public void onResult(@NonNull Connections.StartAdvertisingResult result) {
-                                if (result.getStatus().isSuccess()) {
-                                    logD("Now advertising endpoint " + result.getLocalEndpointName());
-                                    onAdvertisingStarted();
-                                } else {
-                                    mIsAdertising = false;
-                                    logW(String.format("Advertising failed. Status %s",
-                                            ConnectionActivity.toString(result.getStatus())));
-                                    onAdvertisingFailed();
-                                }
+                        result -> {
+                            if (result.getStatus().isSuccess()) {
+                                logD("Now advertising endpoint " + result.getLocalEndpointName());
+                                onAdvertisingStarted();
+                            } else {
+                                mIsAdvertising = false;
+                                logW(String.format("Advertising failed. Status %s",
+                                        toString(result.getStatus())));
+                                onAdvertisingFailed();
                             }
                         });
     }
 
     protected void stopAdvertising() {
-        mIsAdertising = false;
+        mIsAdvertising = false;
         Nearby.Connections.stopAdvertising(mGoogleApiClient);
     }
 
-    protected void onAdvertisingFailed() {
+    /** @return True if currently advertising. */
+    protected boolean isAdvertising() {
+        return mIsAdvertising;
     }
 
+    /** Advertising has successfully started. Override this method to act on the event. */
     protected void onAdvertisingStarted() {
     }
 
+    /** Advertising has failed to start. Override this method to act on the event. */
+    protected void onAdvertisingFailed() {
+    }
+
+    /**
+     * A pending connection with a remote endpoint has been created. Use {@link ConnectionInfo} for
+     * metadata about the connection (like incoming vs outgoing, or the authentication token). If we
+     * want to continue with the connection, call {@link #acceptConnection(Endpoint)}. Otherwise, call
+     * {@link #rejectConnection(Endpoint)}.
+     */
     protected void onConnectionInitiated(Endpoint endpoint, ConnectionInfo connectionInfo) {}
 
+    /** Accept connection request*/
     protected void acceptConnection(final Endpoint endpoint) {
         Nearby.Connections.acceptConnection(mGoogleApiClient, endpoint.getId(), mPayloadCallback)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(@NonNull Status status) {
-                        if (!status.isSuccess()) {
-                            logW(String.format("acceptConnection failed %s", ConnectionActivity.toString(status)));
-                        }
+                .setResultCallback(status -> {
+                    if (!status.isSuccess()) {
+                        logW(String.format("acceptConnection failed %s", toString(status)));
+                    } else if (status.isSuccess()) {
+                        logD(String.format("acceptConnection success %s", toString(status)));
                     }
                 });
     }
 
+    /** Reject connection request*/
     protected void rejectConnection(Endpoint endpoint) {
         Nearby.Connections.rejectConnection(mGoogleApiClient, endpoint.getId())
-                .setResultCallback(
-                        new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(@NonNull Status status) {
-                                if (!status.isSuccess()) {
-                                    logW(String.format("rejectConnection failed %s", ConnectionActivity.toString(status)));
-                                }
-                            }
-                        }
-                );
+                .setResultCallback(status -> {
+                    if (!status.isSuccess()) {
+                        logW(String.format("rejectConnection failed %s", toString(status)));
+                    } else if (status.isSuccess()) {
+                        logD(String.format("rejectConnection success %s", toString(status)));
+                    }
+                });
     }
 
+    /**
+     * Sets the device to discovery mode. It will now listen for devices in advertising mode. Either
+     * {@link #onDiscoveryStarted()} ()} or {@link #onDiscoveryFailed()} ()} will be called once we've
+     * found out if we successfully entered this mode.
+     */
     protected void startDiscovered() {
         mIsDiscovering = true;
         mDiscoveredEndpoints.clear();
@@ -304,34 +317,39 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
                 },
                 new DiscoveryOptions(STAR_STRATEGY))
                 .setResultCallback(
-                        new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(@NonNull Status status) {
-                                if (status.isSuccess()) {
-                                    onDiscoveryStarted();
-                                } else {
-                                    mIsDiscovering = false;
-                                    logW(String.format("Discovering failed. Status %s",
-                                            ConnectionActivity.toString(status)));
-                                    onDiscoveryFailed();
-                                }
+                        status -> {
+                            if (status.isSuccess()) {
+                                onDiscoveryStarted();
+                            } else {
+                                mIsDiscovering = false;
+                                logW(String.format("Discovering failed. Status %s",
+                                        toString(status)));
+                                onDiscoveryFailed();
                             }
                         });
     }
 
+    /** Stops discovery. */
     protected void stopDiscovering() {
         mIsDiscovering = false;
         Nearby.Connections.stopDiscovery(mGoogleApiClient);
     }
 
+    /** @return True if currently discovering. */
     protected boolean isDiscovering() {
         return mIsDiscovering;
     }
 
+    /** Discovery has successfully started. Override this method to act on the event. */
     protected void onDiscoveryStarted() {}
 
+    /** Discovery has failed to start. Override this method to act on the event. */
     protected void onDiscoveryFailed() {}
 
+    /**
+     * A remote endpoint has been discovered. Override this method to act on the event. To connect to
+     * the device, call {@link #connectToEndpoint(Endpoint)}.
+     */
     protected void onEndpointDiscovered(Endpoint endpoint) {}
 
     protected void disconnect(Endpoint endpoint) {
@@ -346,31 +364,34 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
         mEstablishConnections.clear();
     }
 
+    /** Sends a connection request to the endpoint. */
     protected void connectToEndpoint(final Endpoint endpoint) {
+        // If we already sent out a connection request, wait for it to return
+        // before we do anything else. P2P_STAR only allows 1 outgoing connection.
         if (mIsConnecting) {
             logW("Already connecting this endpoint " + endpoint);
             return;
         }
 
         logD("Sending a connection request to endpoint " + endpoint);
+        // Mark ourselves as connecting so we don't connect multiple times
         mIsConnecting = true;
 
+        // Ask to connect
         Nearby.Connections.requestConnection(
                 mGoogleApiClient, getName(), endpoint.getId(), mConnectionLifecycleCallback)
                 .setResultCallback(
-                        new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(@NonNull Status status) {
-                                if (!status.isSuccess()) {
-                                    logW(String.format(
-                                            "requestConnection failed. %s", ConnectionActivity.toString(status)));
-                                    mIsConnecting = false;
-                                    onConnectionFailed(endpoint);
-                                }
+                        status -> {
+                            if (!status.isSuccess()) {
+                                logW(String.format(
+                                        "requestConnection failed. %s", toString(status)));
+                                mIsConnecting = false;
+                                onConnectionFailed(endpoint);
                             }
                         });
     }
 
+    /** True if we're currently attempting to connect to another device. */
     protected boolean isConnecting() {
         return mIsConnecting;
     }
@@ -387,24 +408,34 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
         onEndpointDisconnected(endpoint);
     }
 
+    /** A connection with this endpoint has failed. Override this method to act on the event. */
     protected void onConnectionFailed(Endpoint endpoint) {}
 
+    /** Someone has connected to us. Override this method to act on the event. */
     protected void onEndpointConnected(Endpoint endpoint) {}
 
+    /** Someone has disconnected. Override this method to act on the event. */
     protected void onEndpointDisconnected(Endpoint endpoint) {}
 
+    /** @return A list of currently connected endpoints. */
     protected Set<Endpoint> getConnectedEndpoints() {
         Set<Endpoint> endpoints = new HashSet<>();
         endpoints.addAll(mEstablishConnections.values());
         return endpoints;
     }
 
+    /** @return A list of currently connected endpoints. */
     protected Set<Endpoint> getDiscoveredEndpoints() {
         Set<Endpoint> endpoints = new HashSet<>();
         endpoints.addAll(mDiscoveredEndpoints.values());
         return endpoints;
     }
 
+    /**
+     * Sends a {@link Payload} to all currently connected endpoints.
+     *
+     * @param payload The data you want to send.
+     */
     protected void send(Payload payload) {
         send(payload, mEstablishConnections.keySet());
     }
@@ -412,30 +443,40 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
     private void send(Payload payload, Set<String> endpoints) {
         Nearby.Connections.sendPayload(mGoogleApiClient, new ArrayList<String>(endpoints), payload)
                 .setResultCallback(
-                        new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(@NonNull Status status) {
-                                if (!status.isSuccess()) {
-                                    logW(String.format(
-                                            "sendPayload failed. %s",
-                                            ConnectionActivity.toString(status)
-                                    ));
-                                }
+                        status -> {
+                            if (!status.isSuccess()) {
+                                logW(String.format(
+                                        "sendPayload failed. %s",
+                                        toString(status)
+                                ));
                             }
                         }
                 );
     }
 
+    /**
+     * Someone connected to us has sent us data. Override this method to act on the event.
+     *
+     * @param endpoint The sender.
+     * @param payload The data.
+     */
     protected void onReceive(Endpoint endpoint, Payload payload) {}
 
+    /**
+     * @return The service id. This represents the action this connection is for. When discovering,
+     *     we'll verify that the advertiser has the same service id before we consider connecting to
+     *     them.
+     */
     protected abstract String getServiceId();
 
+    /** @return The client's name. Visible to others when connecting. */
     protected abstract String getName();
 
     protected String[] getRequiredPermissions() {
         return REQUIRED_PERMISSIONS;
     }
 
+    /** Represents a device we can talk to. */
     protected static class Endpoint {
         @NonNull private final String id;
         @NonNull private final String name;
@@ -475,6 +516,7 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
         }
     }
 
+    /** @return True if the app was granted all the permissions. False otherwise. */
     public static boolean hasPermissions(Context context, String... permisions) {
         for (String permission : permisions) {
             if (ContextCompat.checkSelfPermission(context, permission)
@@ -485,6 +527,12 @@ public abstract class ConnectionActivity extends AppCompatActivity implements
         return true;
     }
 
+    /**
+     * Transforms a {@link Status} into a English-readable message for logging.
+     *
+     * @param status The current status
+     * @return A readable String. eg. [404]File not found.
+     */
     private static String toString(Status status) {
         return String.format(
                 Locale.US,

@@ -10,6 +10,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        jackOptions {
+            enabled true
+        }
     }
     buildTypes {
         release {
@@ -17,12 +20,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    dataBinding {
+        enabled true
+    }
 }
 
 ext {
     support_version = "26.0.0"
     play_serice_version = "11.0.4"
     multidex_version = "1.0.1"
+    rxbinding_version = "2.0.0"
 }
 
 dependencies {
@@ -34,5 +45,11 @@ dependencies {
     compile "com.google.android.gms:play-services-nearby:$play_serice_version"
     compile "com.android.support:multidex:$multidex_version"
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+
+    compile "com.jakewharton.rxbinding2:rxbinding:$rxbinding_version"
+    compile "com.jakewharton.rxbinding2:rxbinding-appcompat-v7:$rxbinding_version"
+    compile "com.jakewharton.rxbinding2:rxbinding-support-v4:$rxbinding_version"
+    compile "com.jakewharton.rxbinding2:rxbinding-recyclerview-v7:$rxbinding_version"
+
     testCompile 'junit:junit:4.12'
 }
