@@ -403,7 +403,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
     }
 
     private void disconnectedFromEndpoint(Endpoint endpoint) {
-        logD(String.format("conntectedToEndpoint(endpoint = %s)", endpoint));
+        logD(String.format("connectedToEndpoint(endpoint = %s)", endpoint));
         mEstablishConnections.remove(endpoint.getId());
         onEndpointDisconnected(endpoint);
     }
@@ -477,7 +477,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
     }
 
     /** Represents a device we can talk to. */
-    protected static class Endpoint {
+    public static class Endpoint {
         @NonNull private final String id;
         @NonNull private final String name;
 
