@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">NearbyConnectSample</string>
+    <string name="discover_nearby_device">Discover nearby device</string>
+    <string name="share_device_information">Share device information</string>
+    <string name="nearby_message">Nearby Message</string>
+    <string name="nearby_file_shared">Nearby File Shared</string>
+    <string name="nearby_stream">Nearby Stream</string>
 </resources>

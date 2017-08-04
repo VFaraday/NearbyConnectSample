@@ -14,6 +14,8 @@ import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.adapter.RecyclerAdapter;
 import com.vfaraday.nearbyconnectsample.databinding.P2pStarActivityMainBinding;
 
+import java.util.HashSet;
+
 /**
  * <p>{@link State#UNKNOWN}: We cannot do anything. We are waiting for the GoogleApiClient to
  * connect</p>
@@ -42,7 +44,7 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
             "com.vfaraday.nerbyconectionsample.SERVICE_ID";
 
 
-    private final String mName = "VVV";
+    private final String mName = BluetoothAdapter.getDefaultAdapter().getName();
 
     RecyclerAdapter recyclerAdapter;
     P2pStarActivityMainBinding layout;
@@ -54,11 +56,10 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
         layout = DataBindingUtil.setContentView(this, R.layout.p2p_star_activity_main);
 
         /*RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
-        recyclerAdapter = new RecyclerAdapter(getDiscoveredEndpoints());
+        recyclerAdapter = new RecyclerAdapter(
+                getDiscoveredEndpoints().isEmpty() ? new HashSet<>() : getDiscoveredEndpoints());
         layout.listDiscovers.setLayoutManager(mLayoutManager);
         layout.listDiscovers.setAdapter(recyclerAdapter);*/
-
-
 
         RxView.clicks(layout.btnStartAdvertise)
                 .subscribe(v -> {
@@ -66,10 +67,17 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
                         stopDiscovering();
                     }
                     startAdvertising();
+                    mState = State.ADVERTISING;
+                    layout.tvState.setText(String.format("State : %s", mState.toString()));
                 });
 
         RxView.clicks(layout.btnStopAdvertise)
-                .subscribe(v -> stopAdvertising());
+                .subscribe(v -> {
+                    stopAdvertising();
+                    mState = State.UNKNOWN;
+                    layout.tvState.setText(String.format("State : %s", mState.toString()));
+                });
+
 
         RxView.clicks(layout.btnStartDiscover)
                 .subscribe(v -> {
@@ -77,10 +85,16 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
                         stopAdvertising();
                     }
                     startDiscovered();
+                    mState = State.DISCOVERING;
+                    layout.tvState.setText(String.format("State : %s", mState.toString()));
                 });
 
         RxView.clicks(layout.btnStopDiscover)
-                .subscribe(v -> stopDiscovering());
+                .subscribe(v -> {
+                    stopDiscovering();
+                    mState = State.UNKNOWN;
+                    layout.tvState.setText(String.format("State : %s", mState.toString()));
+                });
     }
 
     @Override
@@ -127,7 +141,7 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
 
     @Override
     protected void onEndpointDiscovered(Endpoint endpoint) {
-        connectToEndpoint(endpoint);
+        //recyclerAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -146,8 +160,10 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        stopAdvertising();
-        stopDiscovering();
+        if (isAdvertising() || isDiscovering()) {
+            stopAdvertising();
+            stopDiscovering();
+        }
     }
 
     /** {@see P2PStarConnectionActivity#getServiceId()} */
@@ -166,7 +182,7 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
     }
 
     /** State thar the UI goes through. */
-    public enum State {
+    private enum State {
         UNKNOWN,
         DISCOVERING,
         ADVERTISING,
