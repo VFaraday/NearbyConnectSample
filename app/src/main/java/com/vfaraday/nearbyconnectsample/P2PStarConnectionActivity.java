@@ -53,7 +53,8 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
               Manifest.permission.BLUETOOTH_ADMIN,
               Manifest.permission.ACCESS_WIFI_STATE,
               Manifest.permission.CHANGE_WIFI_STATE,
-              Manifest.permission.ACCESS_COARSE_LOCATION
+              Manifest.permission.ACCESS_COARSE_LOCATION,
+              Manifest.permission.RECORD_AUDIO
             };
 
     private static final int REQUEST_CODE_REQUIRED_PERMISSION = 1;
@@ -454,7 +455,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
     }
 
     private void send(Payload payload, Set<String> endpoints) {
-        Nearby.Connections.sendPayload(mGoogleApiClient, new ArrayList<String>(endpoints), payload)
+        Nearby.Connections.sendPayload(mGoogleApiClient, new ArrayList<>(endpoints), payload)
                 .setResultCallback(
                         status -> {
                             if (!status.isSuccess()) {

@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.databinding.ActivityMainBinding;
 import com.vfaraday.nearbyconnectsample.messages.MessageActivity;
+import com.vfaraday.nearbyconnectsample.stream.StreamActivity;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -30,6 +31,12 @@ public class MainActivity extends AppCompatActivity {
         RxView.clicks(layout.btnNearbyFileShared)
                 .subscribe(v -> {
                     Intent intent = new Intent(this, MainActivityP2PStar.class);
+                    startActivity(intent);
+                });
+
+        RxView.clicks(layout.btnNearbyStream)
+                .subscribe(v -> {
+                    Intent intent = new Intent(this, StreamActivity.class);
                     startActivity(intent);
                 });
     }

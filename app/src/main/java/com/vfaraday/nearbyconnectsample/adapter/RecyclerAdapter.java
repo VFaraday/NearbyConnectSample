@@ -14,6 +14,10 @@ import java.util.Set;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.EndpointHolder> {
 
+    public void setEndpoints(Set<Endpoint> endpointList) {
+        endpoints.addAll(endpointList);
+    }
+
     private ArrayList<Endpoint> endpoints;
 
     public RecyclerAdapter(Set<Endpoint> endpointList) {

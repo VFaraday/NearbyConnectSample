@@ -1,19 +1,25 @@
 package com.vfaraday.nearbyconnectsample;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.adapter.RecyclerAdapter;
 import com.vfaraday.nearbyconnectsample.databinding.P2pStarActivityMainBinding;
 
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 
 /**
@@ -43,6 +49,9 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
     private static final String SERVICE_ID =
             "com.vfaraday.nerbyconectionsample.SERVICE_ID";
 
+    private static final String ENDPOINT_ID_EXTRA = "endpointId";
+    private static final int READ_REQUEST_CODE = 42;
+
 
     private final String mName = BluetoothAdapter.getDefaultAdapter().getName();
 
@@ -55,11 +64,10 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
 
         layout = DataBindingUtil.setContentView(this, R.layout.p2p_star_activity_main);
 
-        /*RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
-        recyclerAdapter = new RecyclerAdapter(
-                getDiscoveredEndpoints().isEmpty() ? new HashSet<>() : getDiscoveredEndpoints());
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
+        recyclerAdapter = new RecyclerAdapter(new HashSet<>());
         layout.listDiscovers.setLayoutManager(mLayoutManager);
-        layout.listDiscovers.setAdapter(recyclerAdapter);*/
+        layout.listDiscovers.setAdapter(recyclerAdapter);
 
         RxView.clicks(layout.btnStartAdvertise)
                 .subscribe(v -> {
@@ -112,7 +120,7 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
                     rejectConnection(endpoint);
                 })
                 .show();
-        //recyclerAdapter.notifyDataSetChanged();
+        recyclerAdapter.notifyDataSetChanged();
     }
 
     private void onStateChanged(State oldState, State newState) {
@@ -141,7 +149,8 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
 
     @Override
     protected void onEndpointDiscovered(Endpoint endpoint) {
-        //recyclerAdapter.notifyDataSetChanged();
+        recyclerAdapter.setEndpoints(getDiscoveredEndpoints());
+        recyclerAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -163,6 +172,34 @@ public class MainActivityP2PStar extends P2PStarConnectionActivity {
         if (isAdvertising() || isDiscovering()) {
             stopAdvertising();
             stopDiscovering();
+        }
+    }
+
+    private void showImage(String endpointId) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        intent.putExtra(ENDPOINT_ID_EXTRA, endpointId);
+        startActivityForResult(intent, READ_REQUEST_CODE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            if (resultData != null) {
+
+                String endpointId = resultData.getStringExtra(ENDPOINT_ID_EXTRA);
+                Uri uri = resultData.getData();
+                ParcelFileDescriptor pfd;
+                try {
+                    pfd = getContentResolver().openFileDescriptor(uri, "r");
+                    Payload payload = Payload.fromFile(pfd);
+                    send(payload);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
         }
     }
 
