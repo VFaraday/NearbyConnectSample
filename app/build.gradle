@@ -11,8 +11,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        resValue "string", "API_NEARBY", "AIzaSyAc33um1yjL9jRHVEHjj0pNe2WfduoFTkw"
-
+        resValue "string", "Nearby_API", "AIzaSyChYuFlm9L4LKexj_MgibacsdHeXs-5iH8"
 
         jackOptions {
             enabled true

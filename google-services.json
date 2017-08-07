@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1072627958462",
+    "project_id": "nearbyconnectsample"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1072627958462:android:65dfd20a9f4072e2",
+        "android_client_info": {
+          "package_name": "com.vfaraday.nearbyconnectsample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1072627958462-gmtrunfbuscf36lnmchstfot22r59b9e.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "1072627958462-vvtdfmq9jq6na6kl27mvgsupag18m8fj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vfaraday.nearbyconnectsample",
+            "certificate_hash": "744093082d13e60e02c1c05fa5bb816d6723e7ba"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAH6w2j8U__CKR66zvrSBCUrkuT6G-oIWc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

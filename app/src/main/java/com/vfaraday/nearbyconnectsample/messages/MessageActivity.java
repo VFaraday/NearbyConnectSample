@@ -11,13 +11,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.design.widget.Snackbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import com.google.android.gms.nearby.Nearby;
-import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.messages.Message;
 import com.google.android.gms.nearby.messages.MessageListener;
 
@@ -26,6 +26,7 @@ import com.google.android.gms.nearby.messages.PublishOptions;
 import com.google.android.gms.nearby.messages.Strategy;
 import com.google.android.gms.nearby.messages.SubscribeCallback;
 import com.google.android.gms.nearby.messages.SubscribeOptions;
+import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.R;
 import com.vfaraday.nearbyconnectsample.databinding.ActivityMessageBinding;
 
@@ -70,20 +71,18 @@ public class MessageActivity extends AppCompatActivity implements
             @Override
             public void onFound(Message message) {
                 // Called when a new message is found.
-                mNearbyDeviceAdapter.add(
-                        DeviceMessage.fromNearbyMessage(message).getMessageBody());
+                mNearbyDeviceAdapter.add(new String(message.getContent()));
             }
 
             @Override
             public void onLost(Message message) {
                 // Called when a message is no longer detectable nearby.
-                mNearbyDeviceAdapter.remove(
-                        DeviceMessage.fromNearbyMessage(message).getMessageBody());
+                mNearbyDeviceAdapter.remove(new String(message.getContent()));
             }
         };
 
-        mMessage = DeviceMessage.newNearbyMessage(getUUID(getSharedPreferences(
-                getApplicationContext().getPackageName(), Context.MODE_PRIVATE)));
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(layout.edtTxtSmsText.getWindowToken(), InputMethodManager.HIDE_IMPLICIT_ONLY);
 
         layout.subscribeSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
             // If GoogleApiClient is connected, perform sub actions in response to user action.
@@ -98,7 +97,7 @@ public class MessageActivity extends AppCompatActivity implements
             }
         });
 
-        layout.publishSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+        /*layout.publishSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
             // If GoogleApiClient is connected, perform pub actions in response to user action.
             // If it isn't connected, do nothing, and perform pub actions when it connects (see
             // onConnected()).
@@ -109,7 +108,7 @@ public class MessageActivity extends AppCompatActivity implements
                     unPublish();
                 }
             }
-        });
+        });*/
 
         final List<String> nearbyDevicesArrayList = new ArrayList<>();
         mNearbyDeviceAdapter = new ArrayAdapter<>(this,
@@ -118,6 +117,15 @@ public class MessageActivity extends AppCompatActivity implements
         if (layout.nearbyDevicesListView != null) {
             layout.nearbyDevicesListView.setAdapter(mNearbyDeviceAdapter);
         }
+
+        RxView.clicks(layout.btnSendSms)
+                .subscribe(v -> {
+                    if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+                        mMessage = new Message(String.valueOf(layout.edtTxtSmsText.getText()).getBytes());
+                        publish();
+                        layout.edtTxtSmsText.setText("");
+                    }
+                });
         buildGoogleApiClient();
     }
 
@@ -128,9 +136,9 @@ public class MessageActivity extends AppCompatActivity implements
         // switch buttons retain state on orientation change). Since the GoogleApiClient disconnects
         // when the activity is destroyed, foreground pubs/subs do not survive device rotation. Once
         // this activity is re-created and GoogleApiClient connects, we check the UI and pub/sub
-        if (layout.publishSwitch.isChecked()) {
+        /*if (layout.publishSwitch.isChecked()) {
             publish();
-        }
+        }*/
         if (layout.subscribeSwitch.isChecked()) {
             subscribe();
         }
@@ -143,7 +151,7 @@ public class MessageActivity extends AppCompatActivity implements
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        layout.publishSwitch.setEnabled(false);
+        //layout.publishSwitch.setEnabled(false);
         layout.subscribeSwitch.setEnabled(false);
         logAndShowSnackbar("Exception while connecting to Google Play services: " +
                 connectionResult.getErrorMessage());
@@ -209,7 +217,7 @@ public class MessageActivity extends AppCompatActivity implements
                         Log.i(TAG, "No longer publishing");
                         runOnUiThread(() -> {
                             Log.i(TAG, "No longer publishing");
-                            layout.publishSwitch.setChecked(false);
+                            //layout.publishSwitch.setChecked(false);
                         });
                     }
                 })
@@ -222,7 +230,7 @@ public class MessageActivity extends AppCompatActivity implements
                         logAndShowSnackbar("Published successfully. = " + status);
                     } else {
                         logAndShowSnackbar("Could not publish, status = " + status);
-                        layout.publishSwitch.setChecked(false);
+                        //layout.publishSwitch.setChecked(false);
                     }
                 });
     }

@@ -1,4 +1,4 @@
-package com.vfaraday.nearbyconnectsample;
+package com.vfaraday.nearbyconnectsample.fileShared;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -16,6 +16,8 @@ import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.jakewharton.rxbinding2.view.RxView;
+import com.vfaraday.nearbyconnectsample.P2PStarConnectionActivity;
+import com.vfaraday.nearbyconnectsample.R;
 import com.vfaraday.nearbyconnectsample.adapter.RecyclerAdapter;
 import com.vfaraday.nearbyconnectsample.databinding.P2pStarActivityMainBinding;
 

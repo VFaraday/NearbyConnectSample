@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.databinding.ActivityMainBinding;
+import com.vfaraday.nearbyconnectsample.fileShared.MainActivityP2PStar;
 import com.vfaraday.nearbyconnectsample.messages.MessageActivity;
 import com.vfaraday.nearbyconnectsample.stream.StreamActivity;
 

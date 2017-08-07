@@ -8,13 +8,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
-import android.os.PersistableBundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
@@ -30,7 +26,6 @@ import java.util.Set;
 
 public class StreamActivity extends P2PStarConnectionActivity {
 
-    private static final String TAG = "STREAMAC";
     private ActivityStreamBinding layout;
 
     private static final String SERVICE_ID =
@@ -49,7 +44,6 @@ public class StreamActivity extends P2PStarConnectionActivity {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     private final Runnable mDiscoverRunnable = () -> setState(State.DISCOVERING);
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

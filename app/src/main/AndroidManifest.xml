@@ -19,7 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivityP2PStar"/>
+        <activity android:name=".fileShared.MainActivityP2PStar"/>
         <activity android:name=".stream.StreamActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -34,7 +34,7 @@
     <!--suppress AndroidElementNotAllowed -->
     <meta-data
         android:name="com.google.android.nearby.messages.API_KEY"
-        android:value= "API_NEARBY"/>
+        android:value= "AIzaSyChYuFlm9L4LKexj_MgibacsdHeXs-5iH8"/>
 
 
 </manifest>
