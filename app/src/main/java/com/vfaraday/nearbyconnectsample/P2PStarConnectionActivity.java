@@ -54,7 +54,8 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
               Manifest.permission.ACCESS_WIFI_STATE,
               Manifest.permission.CHANGE_WIFI_STATE,
               Manifest.permission.ACCESS_COARSE_LOCATION,
-              Manifest.permission.RECORD_AUDIO
+              Manifest.permission.RECORD_AUDIO,
+              Manifest.permission.WRITE_EXTERNAL_STORAGE
             };
 
     private static final int REQUEST_CODE_REQUIRED_PERMISSION = 1;
@@ -73,8 +74,12 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
      */
     private final Map<String, Endpoint> mEstablishConnections = new HashMap<>();
 
+    public static GoogleApiClient getGoogleApiClient() {
+        return mGoogleApiClient;
+    }
+
     /** We'll talk to Nearby Connection through the GoogleApiClient */
-    private GoogleApiClient mGoogleApiClient;
+    private static GoogleApiClient mGoogleApiClient;
 
     /**
      *  True if we are asking a discovered device to connect to us. While we ask, we cannot ask
@@ -132,7 +137,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
             new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(String endpointId, Payload payload) {
-                    logD(String.format("onPayloadReceived(endpoindId = %s, payload = %s)",
+                    logD(String.format("onPayloadReceived(endpointId = %s, payload = %s)",
                             endpointId, payload));
                     onReceive(mEstablishConnections.get(endpointId), payload);
                 }
@@ -142,6 +147,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
                     logD(String.format(
                             "onPayloadTransferUpdate(endpointId = %s, update = %s)", endpointId, update
                     ));
+                    onTransferUpdate(update.getPayloadId(), update);
                 }
             };
 
@@ -151,8 +157,15 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(Nearby.CONNECTIONS_API)
-                    .enableAutoManage(this, this)
                     .build();
+        }
+    }
+
+    protected boolean ismGoogleConnect() {
+        if (mGoogleApiClient != null) {
+            return mGoogleApiClient.isConnected();
+        } else {
+            return false;
         }
     }
 
@@ -166,7 +179,14 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
     }
 
     @Override
-    protected void onStart() {
+    protected void onPause() {
+        super.onPause();
+
+    }
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (hasPermissions(this, REQUIRED_PERMISSIONS)) {
             createGoogleClientApi();
         } else {
@@ -174,19 +194,6 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
                 requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSION);
             }
         }
-        super.onStart();
-    }
-
-    @SuppressWarnings("deprecation")
-    private NotificationCompat.Builder buildNotification(Payload payload, boolean isIncoming) {
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this)
-                .setContentTitle(isIncoming ? "Receiving..." : "Sending...");
-
-        boolean interminate = false;
-
-
-        return notification;
-
     }
 
     /** connected to Nearby Connections */
@@ -455,17 +462,24 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
     }
 
     private void send(Payload payload, Set<String> endpoints) {
-        Nearby.Connections.sendPayload(mGoogleApiClient, new ArrayList<>(endpoints), payload)
-                .setResultCallback(
-                        status -> {
-                            if (!status.isSuccess()) {
-                                logW(String.format(
-                                        "sendPayload failed. %s",
-                                        toString(status)
-                                ));
+        if (mGoogleApiClient.isConnected()) {
+            Nearby.Connections.sendPayload(mGoogleApiClient, new ArrayList<>(endpoints), payload)
+                    .setResultCallback(
+                            status -> {
+                                if (!status.isSuccess()) {
+                                    logW(String.format(
+                                            "sendPayload failed. %s",
+                                            toString(status)
+                                    ));
+                                } else if (status.isSuccess()) {
+                                    logW(String.format("Send success %s", toString(status)));
+                                }
                             }
-                        }
-                );
+                    );
+        } else {
+            logW(String.valueOf(mGoogleApiClient.isConnected()));
+        }
+
     }
 
     /**
@@ -476,6 +490,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
      */
     protected void onReceive(Endpoint endpoint, Payload payload) {}
 
+    protected void onTransferUpdate(Long endpointId, PayloadTransferUpdate update) {}
     /**
      * @return The service id. This represents the action this connection is for. When discovering,
      *     we'll verify that the advertiser has the same service id before we consider connecting to

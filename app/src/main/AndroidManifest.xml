@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <!-- Required for recording audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -19,7 +20,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".fileShared.MainActivityP2PStar"/>
         <activity android:name=".stream.StreamActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -29,6 +29,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".messages.MessageActivity" />
+        <activity android:name=".fileShared.SendFileActivity"/>
+        <service android:name=".fileShared.ForegroundService" />
     </application>
 
     <!--suppress AndroidElementNotAllowed -->

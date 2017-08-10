@@ -1,55 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <LinearLayout
+    <android.support.design.widget.CoordinatorLayout
+        android:id="@+id/message_container"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="16dp">
 
-        <TextView
-            android:id="@+id/tv_state"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:id="@+id/btn_startAdvertise"
-                android:layout_width="wrap_content"
+            <android.support.v7.widget.SwitchCompat
+                android:id="@+id/advertise_switch"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Start Advertise"/>
+                android:text="Start Advertise" />
 
-            <Button
-                android:id="@+id/btn_stopAdvertise"
-                android:layout_width="wrap_content"
+            <android.support.v7.widget.SwitchCompat
+                android:id="@+id/discover_switch"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Stop Advertise"/>
+                android:text="Start Discover" />
+
+
         </LinearLayout>
 
-        <LinearLayout
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_choose_file"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"/>
 
-            <Button
-                android:id="@+id/btn_startDiscover"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Start Discovered"/>
 
-            <Button
-                android:id="@+id/btn_stopDiscover"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Stop Discovered"/>
-        </LinearLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_discovers"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-    </android.support.v7.widget.RecyclerView>
-    </LinearLayout>
+    </android.support.design.widget.CoordinatorLayout>
 </layout>
