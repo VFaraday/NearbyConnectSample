@@ -14,6 +14,7 @@ import android.support.v4.util.SimpleArrayMap;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
@@ -36,6 +37,8 @@ public class SendFileActivity extends P2PStarConnectionActivity{
     private File payloadFile;
 
     private ActivitySendfileBinding layout;
+
+    private boolean changeIntent = false;
 
     private static final String SERVICE_ID =
             "com.vfaraday.nerbyconectionsample.SERVICE_ID";
@@ -67,6 +70,7 @@ public class SendFileActivity extends P2PStarConnectionActivity{
 
         RxView.clicks(layout.btnOpenFile)
                 .subscribe(v -> {
+                    changeIntent = true;
                     if (payloadFile != null) {
                         try {
                             Intent myIntent = new Intent(android.content.Intent.ACTION_VIEW);
@@ -87,6 +91,25 @@ public class SendFileActivity extends P2PStarConnectionActivity{
 
         Intent service = new Intent(this, ForegroundService.class);
         startService(service);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!getGoogleApiClient().isConnected()) {
+            getGoogleApiClient().connect();
+            logW("connect");
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (!changeIntent) {
+            getGoogleApiClient().disconnect();
+            logW(String.valueOf(getGoogleApiClient().isConnected()));
+        }
+        logW("OnStop");
     }
 
     protected void onStateChange(State newState) {
@@ -178,6 +201,7 @@ public class SendFileActivity extends P2PStarConnectionActivity{
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        changeIntent = false;
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (resultData != null) {
                 // The URI of the file selected by the user.
