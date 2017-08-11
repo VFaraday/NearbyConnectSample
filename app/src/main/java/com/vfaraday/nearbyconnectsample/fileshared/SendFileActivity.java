@@ -1,4 +1,4 @@
-package com.vfaraday.nearbyconnectsample.fileShared;
+package com.vfaraday.nearbyconnectsample.fileshared;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -14,7 +14,6 @@ import android.support.v4.util.SimpleArrayMap;
 import android.view.View;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
@@ -85,7 +84,7 @@ public class SendFileActivity extends P2PStarConnectionActivity{
                             e.getMessage();
                         }
                     } else {
-                        Toast.makeText(getBaseContext(), "No File to open", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getBaseContext(), R.string.no_file_open, Toast.LENGTH_LONG).show();
                     }
                 });
 
@@ -204,7 +203,6 @@ public class SendFileActivity extends P2PStarConnectionActivity{
         changeIntent = false;
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (resultData != null) {
-                // The URI of the file selected by the user.
                 Uri uri = resultData.getData();
 
                 // Open the ParcelFileDescriptor for this URI with read access.
@@ -264,7 +262,6 @@ public class SendFileActivity extends P2PStarConnectionActivity{
 
     @Override
     protected void onEndpointDisconnected(P2PStarConnectionActivity.Endpoint endpoint) {
-        // If we lost all our endpoints, then we should reset the state of our app and go back
         // to our initial state (discovering).
         logW("we lost all our endpoints");
         if (getConnectedEndpoints().isEmpty()) {

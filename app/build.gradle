@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'me.tatarka.retrolambda'
 
 android {
     compileSdkVersion 26
@@ -12,10 +13,6 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         resValue "string", "Nearby_API", "AIzaSyChYuFlm9L4LKexj_MgibacsdHeXs-5iH8"
-
-        jackOptions {
-            enabled true
-        }
     }
     buildTypes {
         release {
@@ -38,27 +35,24 @@ ext {
     multidex_version = "1.0.1"
     rxbinding_version = "2.0.0"
     gson_version = "2.8.1"
+    constraint_version = "1.0.2"
+    retrolambda_version = "2.5.1"
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
     compile "com.android.support:appcompat-v7:$support_version"
     compile "com.android.support:recyclerview-v7:$support_version"
     compile "com.android.support:design:$support_version"
 
     compile "com.google.android.gms:play-services-nearby:$play_serice_version"
     compile "com.android.support:multidex:$multidex_version"
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile "com.android.support.constraint:constraint-layout:$constraint_version"
 
     compile "com.jakewharton.rxbinding2:rxbinding:$rxbinding_version"
-    compile "com.jakewharton.rxbinding2:rxbinding-appcompat-v7:$rxbinding_version"
-    compile "com.jakewharton.rxbinding2:rxbinding-support-v4:$rxbinding_version"
-    compile "com.jakewharton.rxbinding2:rxbinding-recyclerview-v7:$rxbinding_version"
+
+    retrolambdaConfig "'net.orfjackal.retrolambda:retrolambda:$retrolambda_version"
 
     compile "com.google.code.gson:gson:$gson_version"
-
-    testCompile 'junit:junit:4.12'
 }

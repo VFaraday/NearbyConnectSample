@@ -3,18 +3,14 @@ package com.vfaraday.nearbyconnectsample;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.databinding.ActivityMainBinding;
-import com.vfaraday.nearbyconnectsample.fileShared.SendFileActivity;
+import com.vfaraday.nearbyconnectsample.fileshared.SendFileActivity;
 import com.vfaraday.nearbyconnectsample.messages.MessageActivity;
 import com.vfaraday.nearbyconnectsample.stream.StreamActivity;
-
-import java.io.File;
 
 
 public class MainActivity extends AppCompatActivity {

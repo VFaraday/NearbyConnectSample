@@ -5,4 +5,7 @@
     <string name="nearby_message">Nearby Message</string>
     <string name="nearby_file_shared">Nearby File Shared</string>
     <string name="nearby_stream">Nearby Stream</string>
+    <string name="no_file_open">No File to open</string>
+    <string name="insubscribing">UnSubscribing</string>
+    <string name="unPublishing">UnPublishing</string>
 </resources>

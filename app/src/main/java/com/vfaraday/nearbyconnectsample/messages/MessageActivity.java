@@ -40,22 +40,6 @@ public class MessageActivity extends AppCompatActivity implements
     private static final String TAG = "MessageActivity";
     ActivityMessageBinding layout;
 
-    private static final String KEY_UUID = "key_uuid";
-
-    /**
-     * Creates a UUID and saves it to {@link android.content.SharedPreferences}. The UUID is added to the published
-     * message to avoid it being undelivered due to de-duplication. See {@link DeviceMessage} for
-     * details.
-     */
-    private static String getUUID(SharedPreferences sharedPreferences) {
-        String uuid = sharedPreferences.getString(KEY_UUID, "");
-        if (TextUtils.isEmpty(uuid)) {
-            uuid = UUID.randomUUID().toString();
-            sharedPreferences.edit().putString(KEY_UUID, uuid).apply();
-        }
-        return uuid;
-    }
-
     private GoogleApiClient mGoogleApiClient;
     private Message mMessage;
     private MessageListener mMessageListener;
@@ -97,19 +81,6 @@ public class MessageActivity extends AppCompatActivity implements
             }
         });
 
-        /*layout.publishSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
-            // If GoogleApiClient is connected, perform pub actions in response to user action.
-            // If it isn't connected, do nothing, and perform pub actions when it connects (see
-            // onConnected()).
-            if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
-                if (isChecked) {
-                    publish();
-                } else {
-                    unPublish();
-                }
-            }
-        });*/
-
         final List<String> nearbyDevicesArrayList = new ArrayList<>();
         mNearbyDeviceAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1,
@@ -132,13 +103,6 @@ public class MessageActivity extends AppCompatActivity implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(TAG, "GoogleApiClient connected");
-        // We use the Switch buttons in the UI to track whether we were previously doing pub/sub (
-        // switch buttons retain state on orientation change). Since the GoogleApiClient disconnects
-        // when the activity is destroyed, foreground pubs/subs do not survive device rotation. Once
-        // this activity is re-created and GoogleApiClient connects, we check the UI and pub/sub
-        /*if (layout.publishSwitch.isChecked()) {
-            publish();
-        }*/
         if (layout.subscribeSwitch.isChecked()) {
             subscribe();
         }
@@ -150,8 +114,7 @@ public class MessageActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        //layout.publishSwitch.setEnabled(false);
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {;
         layout.subscribeSwitch.setEnabled(false);
         logAndShowSnackbar("Exception while connecting to Google Play services: " +
                 connectionResult.getErrorMessage());
@@ -199,7 +162,6 @@ public class MessageActivity extends AppCompatActivity implements
                             layout.subscribeSwitch.setChecked(false);
                         }
                     });
-
     }
 
     /**
@@ -217,7 +179,6 @@ public class MessageActivity extends AppCompatActivity implements
                         Log.i(TAG, "No longer publishing");
                         runOnUiThread(() -> {
                             Log.i(TAG, "No longer publishing");
-                            //layout.publishSwitch.setChecked(false);
                         });
                     }
                 })
@@ -230,7 +191,6 @@ public class MessageActivity extends AppCompatActivity implements
                         logAndShowSnackbar("Published successfully. = " + status);
                     } else {
                         logAndShowSnackbar("Could not publish, status = " + status);
-                        //layout.publishSwitch.setChecked(false);
                     }
                 });
     }
@@ -239,7 +199,7 @@ public class MessageActivity extends AppCompatActivity implements
      * Stops subscribing to messages from nearby devices.
      */
     private void unSubscribe() {
-        logAndShowSnackbar("UnSubscribing");
+        logAndShowSnackbar(getString(R.string.insubscribing));
         Nearby.Messages.unsubscribe(mGoogleApiClient, mMessageListener);
     }
 
@@ -247,7 +207,7 @@ public class MessageActivity extends AppCompatActivity implements
      * Stops publishing message to nearby devices.
      */
     private void unPublish() {
-        logAndShowSnackbar("UnPublishing");
+        logAndShowSnackbar(getString(R.string.unPublishing));
         Nearby.Messages.unpublish(mGoogleApiClient, mMessage);
     }
 

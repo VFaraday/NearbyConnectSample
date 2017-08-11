@@ -29,8 +29,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".messages.MessageActivity" />
-        <activity android:name=".fileShared.SendFileActivity"/>
-        <service android:name=".fileShared.ForegroundService" />
+        <activity android:name=".fileshared.SendFileActivity"/>
+        <service android:name=".fileshared.ForegroundService" />
     </application>
 
     <!--suppress AndroidElementNotAllowed -->
