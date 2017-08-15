@@ -2,6 +2,7 @@ package com.vfaraday.nearbyconnectsample.chatnearby;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -23,27 +24,44 @@ public class ChatListAdapter extends RecyclerView.Adapter {
         mMessageList = messageList;
     }
 
-    public void add(UserMessage message) {
-        mMessageList.add(message);
-    }
-
-    public void remove(UserMessage message) {
-        mMessageList.remove(message);
-    }
-
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return null;
+        View view;
+
+        if (viewType == VIEW_TYPE_MESSAGE_SENT) {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_message_sent, parent, false);
+            return new SensMessageHolder(view);
+        } else {
+            view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_message_received, parent, false);
+            return new ReceivedMessageHolder(view);
+        }
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
+        UserMessage userMessage = mMessageList.get(position);
+
+        switch (holder.getItemViewType()) {
+            case VIEW_TYPE_MESSAGE_RECEIVED:
+                ((ReceivedMessageHolder) holder).bind(userMessage);
+                break;
+            case VIEW_TYPE_MESSAGE_SENT:
+                ((SensMessageHolder) holder).bind(userMessage);
+                break;
+        }
+
     }
 
     @Override
     public int getItemViewType(int position) {
-        return super.getItemViewType(position);
+        if (mMessageList.get(position).isSender()) {
+            return VIEW_TYPE_MESSAGE_SENT;
+        } else {
+            return VIEW_TYPE_MESSAGE_RECEIVED;
+        }
     }
 
     @Override
@@ -68,7 +86,7 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
         void bind(UserMessage message) {
             messageText.setText(message.getMessage());
-            timeText.setText((int) message.getCreateAt());
+            timeText.setText(message.getCreateAt());
             nameText.setText(message.getNickname());
         }
     }
@@ -86,7 +104,7 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
         void bind(UserMessage message) {
             messageText.setText(message.getMessage());
-            timeText.setText((int) message.getCreateAt());
+            timeText.setText(message.getCreateAt());
         }
     }
 }

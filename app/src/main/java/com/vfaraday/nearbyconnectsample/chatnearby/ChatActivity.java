@@ -54,7 +54,7 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private ChatMessageActivityBinding layout;
 
-    private List<String> mFoundMessageList;
+    private List<UserMessage> mFoundMessageList;
     private ChatListAdapter mChatListAdapter;
     private UserMessage mUserMessage;
 
@@ -68,7 +68,7 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
 
         mUserMessage = new UserMessage();
         mUserMessage.setNickname(BluetoothAdapter.getDefaultAdapter().getName());
-        final List<String> cachedMessages = Utils.getCachedMessages(this);
+        final List<UserMessage> cachedMessages = Utils.getCachedMessages(this);
         if (cachedMessages != null) {
             mFoundMessageList.addAll(cachedMessages);
         }
@@ -95,7 +95,9 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
                         String dateString = sdf.format(date);
                         mUserMessage.setMessage(String.valueOf(layout.edittextChatbox.getText()));
                         mUserMessage.setCreateAt(dateString);
-                        mMessage = new Message(getByteMessage(mUserMessage));
+                        mUserMessage.setSender(true);
+                        mMessage = UserMessage.newNearbyMessage(mUserMessage);
+                        Utils.saveFoundMessages(this, mMessage, true);
                         publish();
                         layout.edittextChatbox.setText("");
                     }
@@ -117,27 +119,6 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         getSharedPreferences(getApplicationContext().getPackageName(), Context.MODE_PRIVATE)
                 .registerOnSharedPreferenceChangeListener(this);
 
-    }
-
-    private byte [] getByteMessage(UserMessage message) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutput out;
-        byte[] byteMessage = {};
-        try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(message);
-            out.flush();
-            byteMessage = bos.toByteArray();
-        } catch (IOException e) {
-            e.getMessage();
-        } finally {
-            try {
-                bos.close();
-            } catch (IOException ex) {
-                ex.getMessage();
-            }
-        }
-        return byteMessage;
     }
 
     private boolean havePermission() {

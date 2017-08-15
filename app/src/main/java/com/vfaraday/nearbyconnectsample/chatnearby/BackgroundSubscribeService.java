@@ -37,7 +37,7 @@ public class BackgroundSubscribeService extends IntentService {
 
                 @Override
                 public void onFound(Message message) {
-                    Utils.saveFoundMessages(getApplicationContext(), message);
+                    Utils.saveFoundMessages(getApplicationContext(), message, false);
                     updateNotification();
                 }
 
@@ -52,7 +52,7 @@ public class BackgroundSubscribeService extends IntentService {
     }
 
     private void updateNotification() {
-        List<String> messages = Utils.getCachedMessages(getApplicationContext());
+        List<UserMessage> messages = Utils.getCachedMessages(getApplicationContext());
         NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Intent launchIntent = new Intent(getApplicationContext(), ChatActivity.class);
         launchIntent.setAction(Intent.ACTION_MAIN);
@@ -72,7 +72,7 @@ public class BackgroundSubscribeService extends IntentService {
         manager.notify(MESSAGES_NOTIFICATION_ID, nBuilder.build());
     }
 
-    private String getContentTitle(List<String> messages) {
+    private String getContentTitle(List<UserMessage> messages) {
         switch (messages.size()) {
             case 0:
                 return "Scanning";
@@ -83,7 +83,7 @@ public class BackgroundSubscribeService extends IntentService {
         }
     }
 
-    private String getContentText(List<String> messages) {
+    private String getContentText(List<UserMessage> messages) {
         String newLine = System.getProperty("line.separator");
         if (messages.size() < NUM_MESSAGES_NOTIFICATION) {
             return TextUtils.join(newLine, messages);
