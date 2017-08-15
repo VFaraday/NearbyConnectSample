@@ -31,6 +31,9 @@
         <activity android:name=".messages.MessageActivity" />
         <activity android:name=".fileshared.SendFileActivity"/>
         <service android:name=".fileshared.ForegroundService" />
+
+        <service android:name=".chatnearby.BackgroundSubscribeService"
+            android:exported="false"/>
     </application>
 
     <!--suppress AndroidElementNotAllowed -->

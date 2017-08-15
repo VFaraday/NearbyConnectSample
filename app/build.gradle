@@ -30,8 +30,8 @@ android {
 }
 
 ext {
-    support_version = "26.0.0"
-    play_serice_version = "11.0.4"
+    support_version = "26.0.1"
+    play_serice_version = "11.2.0"
     multidex_version = "1.0.1"
     rxbinding_version = "2.0.0"
     gson_version = "2.8.1"
@@ -52,7 +52,7 @@ dependencies {
 
     compile "com.jakewharton.rxbinding2:rxbinding:$rxbinding_version"
 
-    retrolambdaConfig "'net.orfjackal.retrolambda:retrolambda:$retrolambda_version"
+    retrolambdaConfig "net.orfjackal.retrolambda:retrolambda:$retrolambda_version"
 
     compile "com.google.code.gson:gson:$gson_version"
 }
