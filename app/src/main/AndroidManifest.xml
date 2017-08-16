@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <!-- Required for recording audio -->
@@ -30,6 +31,7 @@
         </activity>
         <activity android:name=".messages.MessageActivity" />
         <activity android:name=".fileshared.SendFileActivity"/>
+        <activity android:name=".chatnearby.ChatActivity" />
         <service android:name=".fileshared.ForegroundService" />
 
         <service android:name=".chatnearby.BackgroundSubscribeService"

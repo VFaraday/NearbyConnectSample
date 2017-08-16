@@ -2,6 +2,7 @@ package com.vfaraday.nearbyconnectsample.chatnearby;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,10 +33,12 @@ public class ChatListAdapter extends RecyclerView.Adapter {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_sent, parent, false);
             return new SensMessageHolder(view);
-        } else {
+        } else if (viewType == VIEW_TYPE_MESSAGE_RECEIVED) {
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_message_received, parent, false);
             return new ReceivedMessageHolder(view);
+        } else {
+            return null;
         }
     }
 
@@ -52,11 +55,11 @@ public class ChatListAdapter extends RecyclerView.Adapter {
                 ((SensMessageHolder) holder).bind(userMessage);
                 break;
         }
-
     }
 
     @Override
     public int getItemViewType(int position) {
+        Log.w("TAG", "getItemViewType: " + position);
         if (mMessageList.get(position).isSender()) {
             return VIEW_TYPE_MESSAGE_SENT;
         } else {
@@ -66,6 +69,7 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
     @Override
     public int getItemCount() {
+        Log.w("TAG", "getItemCount: " + mMessageList.size());
         return mMessageList.size();
     }
 

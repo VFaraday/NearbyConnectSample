@@ -10,13 +10,16 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -33,11 +36,10 @@ import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.R;
 import com.vfaraday.nearbyconnectsample.databinding.ChatMessageActivityBinding;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -46,6 +48,8 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final String TAG = "NearbyBLe";
 
     private static final int PERMISSION_REQUEST_CODE = 1111;
+
+    private static final int REQUEST_CODE_REQUIRED_PERMISSION = 1;
 
     private static final String KEY_SUBSCRIBE = "subscribed";
 
@@ -65,16 +69,19 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
 
         layout = DataBindingUtil.setContentView(this, R.layout.chat_message_activity);
-
+        mFoundMessageList = new ArrayList<>();
         mUserMessage = new UserMessage();
         mUserMessage.setNickname(BluetoothAdapter.getDefaultAdapter().getName());
         final List<UserMessage> cachedMessages = Utils.getCachedMessages(this);
         if (cachedMessages != null) {
             mFoundMessageList.addAll(cachedMessages);
+            Collections.sort(mFoundMessageList, (message, t1) -> message.getCreateAt()
+                    .compareTo(t1.getCreateAt()));
         }
 
-        //mChatListAdapter = new ChatListAdapter(this, mFoundMessageList);
-
+        mChatListAdapter = new ChatListAdapter(this, mFoundMessageList);
+        layout.reyclerviewMessageList.setLayoutManager(new LinearLayoutManager(this));
+        layout.reyclerviewMessageList.setAdapter(mChatListAdapter);
 
         if (havePermission()) {
             buildGoogleApiClient();
@@ -91,12 +98,13 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
                     if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
                         long date = System.currentTimeMillis();
                         @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf =
-                                new SimpleDateFormat("MMM MM dd, yyyy h:mm a");
+                                new SimpleDateFormat("h:mm a");
                         String dateString = sdf.format(date);
                         mUserMessage.setMessage(String.valueOf(layout.edittextChatbox.getText()));
                         mUserMessage.setCreateAt(dateString);
                         mUserMessage.setSender(true);
                         mMessage = UserMessage.newNearbyMessage(mUserMessage);
+                        //mFoundMessageList.add(mUserMessage);
                         Utils.saveFoundMessages(this, mMessage, true);
                         publish();
                         layout.edittextChatbox.setText("");
@@ -128,7 +136,24 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void requestPermission() {
         ActivityCompat.requestPermissions(this,
-                new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+                new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_REQUIRED_PERMISSION);
+    }
+
+    @CallSuper
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_REQUIRED_PERMISSION) {
+            for (int grantResult: grantResults) {
+                if (grantResult == PackageManager.PERMISSION_DENIED) {
+                    Toast.makeText(this, "Missing Permissions", Toast.LENGTH_LONG).show();
+                    finish();
+                    return;
+                }
+            }
+            recreate();
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private synchronized void buildGoogleApiClient() {
@@ -205,7 +230,9 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         if (TextUtils.equals(key, Utils.KEY_CACHED_MESSAGES)) {
             mFoundMessageList.clear();
             mFoundMessageList.addAll(Utils.getCachedMessages(this));
-
+            Collections.sort(mFoundMessageList, (message, t1) -> message.getCreateAt()
+                    .compareTo(t1.getCreateAt()));
+            mChatListAdapter.notifyDataSetChanged();
         }
     }
 

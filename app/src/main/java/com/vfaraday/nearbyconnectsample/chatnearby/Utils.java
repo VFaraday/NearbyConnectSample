@@ -8,10 +8,6 @@ import com.google.android.gms.nearby.messages.Message;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +25,7 @@ public class Utils {
         if (TextUtils.isEmpty(cachedMessagesJson)) {
             return Collections.emptyList();
         } else {
-            Type type = new TypeToken<UserMessage>() {}.getType();
+            Type type = new TypeToken<List<UserMessage>>() {}.getType();
             return new Gson().fromJson(cachedMessagesJson, type);
         }
     }
