@@ -12,9 +12,15 @@ import android.text.TextUtils;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.messages.Message;
 import com.google.android.gms.nearby.messages.MessageListener;
+import com.vfaraday.nearbyconnectsample.R;
 
 import java.util.List;
 
+/**
+ * While subscribed in the background, this service shows a persistent notification with the
+ * current set of messages from nearby beacons. Nearby launches this service when a message is
+ * found or lost, and this service updates the notification, then stops itself.
+*/
 public class BackgroundSubscribeService extends IntentService {
 
     private static final int MESSAGES_NOTIFICATION_ID = 1;
@@ -31,6 +37,11 @@ public class BackgroundSubscribeService extends IntentService {
     }
 
     @Override
+    public void onDestroy() {
+
+    }
+
+    @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         if (intent != null) {
             Nearby.Messages.handleIntent(intent, new MessageListener() {
@@ -43,7 +54,6 @@ public class BackgroundSubscribeService extends IntentService {
 
                 @Override
                 public void onLost(Message message) {
-                    super.onLost(message);
                     Utils.removeLostMessage(getApplicationContext(), message);
                     updateNotification();
                 }
@@ -53,7 +63,8 @@ public class BackgroundSubscribeService extends IntentService {
 
     private void updateNotification() {
         List<UserMessage> messages = Utils.getCachedMessages(getApplicationContext());
-        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager manager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Intent launchIntent = new Intent(getApplicationContext(), ChatActivity.class);
         launchIntent.setAction(Intent.ACTION_MAIN);
         launchIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -66,6 +77,7 @@ public class BackgroundSubscribeService extends IntentService {
         NotificationCompat.Builder nBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle(contentTitle)
                 .setContentText(contentText)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setOngoing(true)
                 .setContentIntent(pi);
 
@@ -79,7 +91,7 @@ public class BackgroundSubscribeService extends IntentService {
             case 1:
                 return "One messages";
             default:
-                return "e";
+                return "messages: " + messages.size();
         }
     }
 
@@ -88,6 +100,6 @@ public class BackgroundSubscribeService extends IntentService {
         if (messages.size() < NUM_MESSAGES_NOTIFICATION) {
             return TextUtils.join(newLine, messages);
         }
-        return TextUtils.join(newLine, messages.subList(0, NUM_MESSAGES_NOTIFICATION)) + newLine + "";
+        return messages.get(messages.size()-1).getMessage();
     }
 }

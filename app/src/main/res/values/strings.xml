@@ -9,4 +9,5 @@
     <string name="insubscribing">UnSubscribing</string>
     <string name="unPublishing">UnPublishing</string>
     <string name="chat">Chat</string>
+    <string name="menu_clear">Clear</string>
 </resources>

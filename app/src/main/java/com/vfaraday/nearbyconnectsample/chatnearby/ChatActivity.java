@@ -14,11 +14,15 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -39,15 +43,12 @@ import com.vfaraday.nearbyconnectsample.databinding.ChatMessageActivityBinding;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
       GoogleApiClient.OnConnectionFailedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = "NearbyBLe";
-
-    private static final int PERMISSION_REQUEST_CODE = 1111;
 
     private static final int REQUEST_CODE_REQUIRED_PERMISSION = 1;
 
@@ -62,7 +63,7 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
     private ChatListAdapter mChatListAdapter;
     private UserMessage mUserMessage;
 
-    private boolean mSubscribed;
+    private boolean mSubscribed = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -96,6 +97,9 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         RxView.clicks(layout.buttonChatboxSend)
                 .subscribe(v -> {
                     if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+                        if (String.valueOf(layout.edittextChatbox.getText()).equals("")) {
+                            return;
+                        }
                         long date = System.currentTimeMillis();
                         @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf =
                                 new SimpleDateFormat("h:mm a");
@@ -104,12 +108,15 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
                         mUserMessage.setCreateAt(dateString);
                         mUserMessage.setSender(true);
                         mMessage = UserMessage.newNearbyMessage(mUserMessage);
-                        //mFoundMessageList.add(mUserMessage);
                         Utils.saveFoundMessages(this, mMessage, true);
                         publish();
                         layout.edittextChatbox.setText("");
                     }
                 });
+
+        RxView.clicks(layout.edittextChatbox)
+                .subscribe(v -> layout.reyclerviewMessageList
+                        .scrollToPosition(mFoundMessageList.size()-1));
     }
 
     @Override
@@ -127,6 +134,30 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         getSharedPreferences(getApplicationContext().getPackageName(), Context.MODE_PRIVATE)
                 .registerOnSharedPreferenceChangeListener(this);
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_item, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_clear_item:
+                Utils.clearCache(this);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_SUBSCRIBE, mSubscribed);
     }
 
     private boolean havePermission() {
@@ -156,6 +187,13 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
+    /**
+     * Builds {@link GoogleApiClient}, enabling automatic lifecycle management using
+     * {@link GoogleApiClient.Builder#enableAutoManage(FragmentActivity,
+     * int, GoogleApiClient.OnConnectionFailedListener)}. I.e., GoogleApiClient connects in
+     * {@link AppCompatActivity#onStart} -- or if onStart() has already happened -- it connects
+     * immediately, and disconnects automatically in {@link AppCompatActivity#onStop}.
+     */
     private synchronized void buildGoogleApiClient() {
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -195,7 +233,7 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
     private void publish() {
         Log.i(TAG, "Publishing");
         PublishOptions options = new PublishOptions.Builder()
-                .setStrategy(Strategy.BLE_ONLY)
+                .setStrategy(Strategy.DEFAULT)
                 .setCallback(new PublishCallback() {
                     @Override
                     public void onExpired() {
@@ -251,6 +289,6 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.e(TAG, "Connection failed. Error code: " + connectionResult);
     }
 }

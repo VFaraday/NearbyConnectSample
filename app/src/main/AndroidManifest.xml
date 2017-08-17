@@ -14,6 +14,8 @@
     <!-- Required for recording audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -31,7 +33,12 @@
         </activity>
         <activity android:name=".messages.MessageActivity" />
         <activity android:name=".fileshared.SendFileActivity"/>
-        <activity android:name=".chatnearby.ChatActivity" />
+        <activity android:name=".chatnearby.ChatActivity"
+            android:windowSoftInputMode="stateHidden|adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
+        </activity>
         <service android:name=".fileshared.ForegroundService" />
 
         <service android:name=".chatnearby.BackgroundSubscribeService"

@@ -19,6 +19,12 @@ public class Utils {
 
     static final String KEY_CACHED_MESSAGES = "cached-messages";
 
+    /**
+     * Fetches message userMessage stored in {@link SharedPreferences}.
+     *
+     * @param context The context.
+     * @return  A list (possibly empty) containing message UserMessage.
+     */
     static List<UserMessage> getCachedMessages(Context context) {
         SharedPreferences sharedPreferences = getSharedPreference(context);
         String cachedMessagesJson = sharedPreferences.getString(KEY_CACHED_MESSAGES, "");
@@ -30,6 +36,13 @@ public class Utils {
         }
     }
 
+    /**
+     * Saves a message UserMessage to {@link SharedPreferences}.
+     *
+     * @param context The context.
+     * @param message The Message whose payload (as string) is saved to SharedPreferences.
+     * @param sender The boolean
+     */
     static void saveFoundMessages(Context context, Message message, boolean sender) {
         ArrayList<UserMessage> cachedMessages = new ArrayList<>(getCachedMessages(context));
         Set<UserMessage> cachedMessagesSet = new HashSet<>(cachedMessages);
@@ -44,6 +57,11 @@ public class Utils {
         }
     }
 
+    /**
+     * Removes a userMessage from {@link SharedPreferences}.
+     * @param context The context.
+     * @param message The Message whose payload (as string) is removed from SharedPreferences.
+     */
     static void removeLostMessage(Context context, Message message) {
         ArrayList<UserMessage> cachedMessages = new ArrayList<>(getCachedMessages(context));
         cachedMessages.remove(UserMessage.fromNearbyMessage(message));
@@ -53,6 +71,21 @@ public class Utils {
                 .apply();
     }
 
+    static void clearCache(Context context) {
+        ArrayList<UserMessage> cachedMessages = new ArrayList<>();
+        getSharedPreference(context)
+                .edit()
+                .putString(KEY_CACHED_MESSAGES, new Gson().toJson(cachedMessages))
+                .apply();
+    }
+
+    /**
+     * Gets the SharedPReferences object that is used for persisting data in this application.
+     *
+     * @param context The context.
+     * @return The single {@link SharedPreferences} instance that can be used to retrieve and modify
+     *         values.
+     */
     static SharedPreferences getSharedPreference(Context context) {
         return context.getSharedPreferences(
                 context.getApplicationContext().getPackageName(),

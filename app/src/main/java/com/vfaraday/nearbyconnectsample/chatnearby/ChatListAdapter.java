@@ -59,7 +59,6 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
     @Override
     public int getItemViewType(int position) {
-        Log.w("TAG", "getItemViewType: " + position);
         if (mMessageList.get(position).isSender()) {
             return VIEW_TYPE_MESSAGE_SENT;
         } else {
@@ -69,7 +68,6 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
     @Override
     public int getItemCount() {
-        Log.w("TAG", "getItemCount: " + mMessageList.size());
         return mMessageList.size();
     }
 
