@@ -1,7 +1,6 @@
 package com.vfaraday.nearbyconnectsample.chatnearby;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -9,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -40,7 +41,6 @@ import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.R;
 import com.vfaraday.nearbyconnectsample.databinding.ChatMessageActivityBinding;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,8 +76,8 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         final List<UserMessage> cachedMessages = Utils.getCachedMessages(this);
         if (cachedMessages != null) {
             mFoundMessageList.addAll(cachedMessages);
-            Collections.sort(mFoundMessageList, (message, t1) -> message.getCreateAt()
-                    .compareTo(t1.getCreateAt()));
+            Collections.sort(mFoundMessageList, (message, t1) ->
+                    message.getCreateAt() > t1.getCreateAt() ? 1 : -1);
         }
 
         mChatListAdapter = new ChatListAdapter(this, mFoundMessageList);
@@ -101,22 +101,24 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
                             return;
                         }
                         long date = System.currentTimeMillis();
-                        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf =
-                                new SimpleDateFormat("h:mm a");
-                        String dateString = sdf.format(date);
                         mUserMessage.setMessage(String.valueOf(layout.edittextChatbox.getText()));
-                        mUserMessage.setCreateAt(dateString);
+                        mUserMessage.setCreateAt(date);
                         mUserMessage.setSender(true);
                         mMessage = UserMessage.newNearbyMessage(mUserMessage);
-                        Utils.saveFoundMessages(this, mMessage, true);
                         publish();
                         layout.edittextChatbox.setText("");
+                        layout.reyclerviewMessageList
+                                .scrollToPosition(mChatListAdapter.getItemCount() - 1);
                     }
                 });
+        layout.reyclerviewMessageList.scrollToPosition(mChatListAdapter.getItemCount() - 1);
+    }
 
-        RxView.clicks(layout.edittextChatbox)
-                .subscribe(v -> layout.reyclerviewMessageList
-                        .scrollToPosition(mFoundMessageList.size()-1));
+    protected void onStart() {
+        super.onStart();
+
+        keyboardIsShowListener();
+
     }
 
     @Override
@@ -248,8 +250,10 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
                 .setResultCallback(status -> {
                     if (status.isSuccess()) {
                         Log.i(TAG, "Published successfully.");
+                        Utils.saveFoundMessages(this, mMessage, true);
                     } else {
                         Log.e(TAG, "Could not publish, status = " + status);
+                        Toast.makeText(this, "Send message failed, try again", Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -268,8 +272,8 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
         if (TextUtils.equals(key, Utils.KEY_CACHED_MESSAGES)) {
             mFoundMessageList.clear();
             mFoundMessageList.addAll(Utils.getCachedMessages(this));
-            Collections.sort(mFoundMessageList, (message, t1) -> message.getCreateAt()
-                    .compareTo(t1.getCreateAt()));
+            Collections.sort(mFoundMessageList, (message, t1) ->
+                    message.getCreateAt() > t1.getCreateAt() ? 1 : -1);
             mChatListAdapter.notifyDataSetChanged();
         }
     }
@@ -290,5 +294,26 @@ public class ChatActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e(TAG, "Connection failed. Error code: " + connectionResult);
+    }
+
+    private void keyboardIsShowListener() {
+        layout.getRoot().getRootView().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                Rect r = new Rect();
+                layout.getRoot().getRootView().getWindowVisibleDisplayFrame(r);
+                int screenHeight = layout.activityChat.getRootView().getHeight();
+
+                // r.bottom is the position above soft keypad or device button.
+                // if keypad is shown, the r.bottom is smaller than that before.
+                int keypadHeight = screenHeight - r.bottom;
+
+                if (keypadHeight > screenHeight * 0.15) { // 0.15 ratio is perhaps enough to determine keypad height.
+                    // keyboard is opened
+                    layout.reyclerviewMessageList.scrollToPosition(mChatListAdapter.getItemCount() - 1);
+                    layout.getRoot().getRootView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            }
+        });
     }
 }

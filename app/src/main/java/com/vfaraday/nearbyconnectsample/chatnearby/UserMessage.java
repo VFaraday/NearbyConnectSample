@@ -8,7 +8,7 @@ public class UserMessage {
     private final static Gson gson = new Gson();
 
     private String message;
-    private String createAt;
+    private long createAt;
     private String nickname;
     private boolean sender;
 
@@ -20,11 +20,11 @@ public class UserMessage {
         this.message = message;
     }
 
-    public String getCreateAt() {
+    public long getCreateAt() {
         return createAt;
     }
 
-    public void setCreateAt(String createAt) {
+    public void setCreateAt(long createAt) {
         this.createAt = createAt;
     }
 

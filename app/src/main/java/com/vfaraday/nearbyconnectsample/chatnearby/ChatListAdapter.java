@@ -1,5 +1,6 @@
 package com.vfaraday.nearbyconnectsample.chatnearby;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.vfaraday.nearbyconnectsample.R;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class ChatListAdapter extends RecyclerView.Adapter {
@@ -88,7 +90,10 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
         void bind(UserMessage message) {
             messageText.setText(message.getMessage());
-            timeText.setText(message.getCreateAt());
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf =
+                    new SimpleDateFormat("h:mm a");
+            String dateString = sdf.format(message.getCreateAt());
+            timeText.setText(dateString);
             nameText.setText(message.getNickname());
         }
     }
@@ -106,7 +111,10 @@ public class ChatListAdapter extends RecyclerView.Adapter {
 
         void bind(UserMessage message) {
             messageText.setText(message.getMessage());
-            timeText.setText(message.getCreateAt());
+            @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf =
+                    new SimpleDateFormat("h:mm a");
+            String dateString = sdf.format(message.getCreateAt());
+            timeText.setText(dateString);
         }
     }
 }
