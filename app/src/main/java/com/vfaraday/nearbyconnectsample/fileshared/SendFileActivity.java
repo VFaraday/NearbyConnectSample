@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.android.gms.nearby.connection.Strategy;
 import com.jakewharton.rxbinding2.view.RxView;
 import com.vfaraday.nearbyconnectsample.P2PStarConnectionActivity;
 import com.vfaraday.nearbyconnectsample.R;
@@ -118,14 +119,14 @@ public class SendFileActivity extends P2PStarConnectionActivity{
                     stopAdvertising();
                 }
                 disconnectFromAllEndpoints();
-                startDiscovered();
+                startDiscovered(Strategy.P2P_STAR);
                 break;
             case ADVERTISING:
                 if (isDiscovering()) {
                     stopDiscovering();
                 }
                 disconnectFromAllEndpoints();
-                startAdvertising();
+                startAdvertising(Strategy.P2P_STAR);
                 break;
             case CONNECTED:
                 if (isDiscovering()) {

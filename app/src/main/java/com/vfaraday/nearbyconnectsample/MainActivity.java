@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.jakewharton.rxbinding2.view.RxView;
+import com.vfaraday.nearbyconnectsample.chatconnection.ChatConnectionActivity;
 import com.vfaraday.nearbyconnectsample.chatnearby.ChatActivity;
 import com.vfaraday.nearbyconnectsample.databinding.ActivityMainBinding;
 import com.vfaraday.nearbyconnectsample.fileshared.SendFileActivity;
@@ -45,6 +46,12 @@ public class MainActivity extends AppCompatActivity {
         RxView.clicks(layout.btnChat)
                 .subscribe(v -> {
                     Intent intent = new Intent(this, ChatActivity.class);
+                    startActivity(intent);
+                });
+
+        RxView.clicks(layout.btnChatConnection)
+                .subscribe(v -> {
+                    Intent intent = new Intent(this, ChatConnectionActivity.class);
                     startActivity(intent);
                 });
     }

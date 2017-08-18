@@ -8,6 +8,7 @@
     <string name="no_file_open">No File to open</string>
     <string name="insubscribing">UnSubscribing</string>
     <string name="unPublishing">UnPublishing</string>
-    <string name="chat">Chat</string>
+    <string name="chat">Nearby Message Chat</string>
     <string name="menu_clear">Clear</string>
+    <string name="nearby_connection_chat">Nearby connection chat</string>
 </resources>

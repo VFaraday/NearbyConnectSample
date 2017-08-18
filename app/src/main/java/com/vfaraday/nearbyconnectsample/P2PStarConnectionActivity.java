@@ -234,14 +234,14 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    protected void startAdvertising() {
+    protected void startAdvertising(Strategy strategy) {
         mIsAdvertising = true;
         Nearby.Connections.startAdvertising(
                 mGoogleApiClient,
                 getName(),
                 getServiceId(),
                 mConnectionLifecycleCallback,
-                new AdvertisingOptions(STAR_STRATEGY))
+                new AdvertisingOptions(strategy))
                 .setResultCallback(
                         result -> {
                             if (result.getStatus().isSuccess()) {
@@ -311,7 +311,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
      * {@link #onDiscoveryStarted()} ()} or {@link #onDiscoveryFailed()} ()} will be called once we've
      * found out if we successfully entered this mode.
      */
-    protected void startDiscovered() {
+    protected void startDiscovered(Strategy strategy) {
         mIsDiscovering = true;
         mDiscoveredEndpoints.clear();
         Nearby.Connections.startDiscovery(
@@ -336,7 +336,7 @@ public abstract class P2PStarConnectionActivity extends AppCompatActivity implem
                         logD(String.format("onEndpointLost(endpointId = %s)", endpointId));
                     }
                 },
-                new DiscoveryOptions(STAR_STRATEGY))
+                new DiscoveryOptions(strategy))
                 .setResultCallback(
                         status -> {
                             if (status.isSuccess()) {

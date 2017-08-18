@@ -33,6 +33,7 @@
         </activity>
         <activity android:name=".messages.MessageActivity" />
         <activity android:name=".fileshared.SendFileActivity"/>
+        <activity android:name=".chatconnection.ChatConnectionActivity" />
         <activity android:name=".chatnearby.ChatActivity"
             android:windowSoftInputMode="stateHidden|adjustResize">
             <intent-filter>
